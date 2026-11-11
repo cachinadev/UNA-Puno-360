@@ -1,0 +1,31 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNA Conecta — Servicios cercanos</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial,sans-serif;background:#f4f7fa;color:#152536}header{background:#103d6c;color:white;padding:16px 24px}header h1{font-size:1.2rem;margin:0}header small{color:#dbe9f7}main{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 75px)}aside{padding:15px;overflow:auto;max-height:calc(100vh - 75px)}#map{min-height:600px}.controls{display:grid;gap:10px}.controls input,.controls select,.controls button{padding:10px;border:1px solid #bdcbd7;border-radius:8px;font-size:1rem}.controls button{background:#103d6c;color:white;cursor:pointer}.result{background:white;margin:10px 0;padding:12px;border-radius:12px;border:1px solid #e2e9ef}.result h3{font-size:.98rem;margin:0 0 4px}.meta{font-size:.85rem;color:#5b6979}#message{padding:10px;font-size:.9rem}a{color:#07508e}.error{color:#a12323}footer{font-size:.75rem;color:#5b6979;margin-top:16px}@media(max-width:780px){main{grid-template-columns:1fr}#map{height:45vh;min-height:330px;grid-row:1}aside{max-height:none}}</style></head>
+<body><header><h1>UNA Conecta 360 · Servicios cercanos</h1><small>Comida · copias · baños · salud · farmacia · Wi-Fi</small></header><main>
+<aside><div class="controls"><label for="category">Tipo de servicio</label><select id="category"><option value="">Todos</option></select>
+<label for="query">Buscar</label><input id="query" placeholder="Nombre o descripción" maxlength="100">
+<label for="radius">Radio desde tu ubicación</label><select id="radius"><option value="500">500 m</option><option value="1000" selected>1 km</option><option value="2000">2 km</option><option value="5000">5 km</option></select>
+<button id="locate">Usar mi ubicación (opcional)</button><button id="search">Buscar servicios</button></div><div id="message" role="status" aria-live="polite"></div><section id="results"></section><footer>Solo servicios verificados y publicados por el operador. Los horarios pueden cambiar. Datos geográficos OSM: © colaboradores de OpenStreetMap (ODbL). La ubicación personal no se envía hasta que se active la búsqueda cercana.</footer></aside><div id="map" role="application" aria-label="Mapa de servicios"></div></main>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script><script>
+const $=id=>document.getElementById(id),message=$('message'),results=$('results');
+const labels={};const escapeHtml=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let locationPoint=null,map=null,markers=[];
+if(window.maplibregl){map=new maplibregl.Map({container:'map',style:'https://demotiles.maplibre.org/style.json',center:[-70.019,-15.827],zoom:14});map.addControl(new maplibregl.NavigationControl());}
+else $('map').innerHTML='<p style="padding:2rem">Mapa no disponible sin librerías/cartografía local. La lista sigue funcionando.</p>';
+async function categories(){try{const r=await fetch('/facilities/categories');if(!r.ok)throw Error();const j=await r.json();for(const c of j.categories){labels[c.id]=c.label;const el=document.createElement('option');el.value=c.id;el.textContent=c.label;$('category').append(el)}}catch(e){message.textContent='No se pudieron cargar las categorías.'}}
+async function search(){message.textContent='Consultando servicios publicados…';results.replaceChildren();for(const m of markers)m.remove();markers=[];
+ const p=new URLSearchParams({limit:'100'});if($('category').value)p.set('category',$('category').value);if($('query').value.trim())p.set('q',$('query').value.trim());
+ if(locationPoint){p.set('lat',locationPoint.lat);p.set('lon',locationPoint.lon);p.set('radius_m',$('radius').value)}
+ try{const r=await fetch('/facilities/search?'+p);if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();message.textContent=`${j.data.length} servicios encontrados. Ninguno es una recomendación médica.`;
+ for(const f of j.data){const el=document.createElement('article');el.className='result';const h=document.createElement('h3');h.textContent=f.name;el.append(h);
+ const lines=[labels[f.category]||f.category,f.address,f.location_hint,f.opening_hours&&('Horario informado: '+f.opening_hours),f.distance_m!=null?f.distance_m+' metros en línea recta':null].filter(Boolean);
+ for(const line of lines){let d=document.createElement('p');d.className='meta';d.textContent=line;el.append(d)}
+ let link=document.createElement('a');link.href=`https://www.openstreetmap.org/?mlat=${encodeURIComponent(f.lat)}&mlon=${encodeURIComponent(f.lon)}#map=18/${encodeURIComponent(f.lat)}/${encodeURIComponent(f.lon)}`;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Ver ubicación';el.append(link);results.append(el);
+ if(map&&Number.isFinite(f.lon)&&Number.isFinite(f.lat)){const m=new maplibregl.Marker().setLngLat([f.lon,f.lat]).setPopup(new maplibregl.Popup().setText(f.name)).addTo(map);markers.push(m)}}
+ if(map&&j.data.length){const b=new maplibregl.LngLatBounds();j.data.forEach(f=>b.extend([f.lon,f.lat]));map.fitBounds(b,{padding:60,maxZoom:16})}
+ }catch(e){message.className='error';message.textContent='No se pudo consultar la API. Comprueba la conexión con Data Hub.'}}
+$('search').onclick=search;$('category').onchange=search;
+$('locate').onclick=()=>{if(!navigator.geolocation){message.textContent='Geolocalización no disponible.';return;}navigator.geolocation.getCurrentPosition(p=>{locationPoint={lat:p.coords.latitude,lon:p.coords.longitude};search()},()=>{message.textContent='Ubicación no autorizada. Puedes buscar sin ubicación.'},{enableHighAccuracy:false,timeout:10000,maximumAge:60000})};
+categories().then(search);
+</script></body></html>

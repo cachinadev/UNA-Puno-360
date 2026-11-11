@@ -1,0 +1,12 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNA Data Hub - Mapa piloto</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<style>body{margin:0;font-family:system-ui,sans-serif}header{padding:12px 18px;background:#103D6C;color:white}#map{height:calc(100vh - 105px)}footer{padding:8px 18px;font-size:12px}a{color:inherit}</style>
+</head><body><header><strong>UNA Data Hub · GeoData piloto</strong><div>Datos de OpenStreetMap o demostración; verificar puntos antes de publicarlos como oficiales</div></header><div id="map"></div><footer>Datos: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · Mapa: OpenStreetMap tiles (uso ligero de demostración)</footer>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+const map=new maplibregl.Map({container:'map',style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]},center:[-70.019,-15.827],zoom:13});
+map.addControl(new maplibregl.NavigationControl());
+map.on('load',async()=>{try{const r=await fetch('/geo/geojson?limit=1000');if(!r.ok)throw Error('API '+r.status); const geo=await r.json();map.addSource('places',{type:'geojson',data:geo});map.addLayer({id:'points',type:'circle',source:'places',paint:{'circle-radius':7,'circle-color':'#e06037','circle-stroke-width':2,'circle-stroke-color':'#fff'}});map.on('click','points',(e)=>{const p=e.features[0].properties;new maplibregl.Popup().setLngLat(e.lngLat).setHTML('<b>'+escapeHTML(p.name)+'</b><br>'+escapeHTML(p.category)+'<br>'+escapeHTML(p.source)).addTo(map)});map.on('mouseenter','points',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','points',()=>map.getCanvas().style.cursor='');}catch(e){console.error(e);document.querySelector('header').append(' · No se pudieron obtener puntos: '+e.message)}});
+function escapeHTML(x){return String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+</script></body></html>

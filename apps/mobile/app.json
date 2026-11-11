@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "UNA Puno 360",
+    "slug": "una-puno-360",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "unapuno360",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": { "typedRoutes": true },
+    "android": { "package": "pe.edu.unap.unapuno360" },
+    "ios": { "bundleIdentifier": "pe.edu.unap.unapuno360", "supportsTablet": true }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "una-puno-360",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --filter @una/web dev",
+    "dev:web": "pnpm --filter @una/web dev",
+    "dev:mobile": "pnpm --filter @una/mobile start",
+    "build": "pnpm --filter @una/web build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @una/web test",
+    "e2e": "pnpm --filter @una/web e2e",
+    "dev:native": "powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1",
+    "test:native": "powershell -ExecutionPolicy Bypass -File scripts/test-native.ps1"
+  },
+  "engines": { "node": ">=20" }
+}

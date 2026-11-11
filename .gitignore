@@ -1,0 +1,44 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+node_modules/
+.next/
+dist/
+.expo/
+coverage/
+playwright-report/
+test-results/
+*.log
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+/artifacts/
+database/backups/*
+!database/backups/.gitkeep
+
+# Additional environment files
+.env.*
+!.env.example
+
+# Python virtual environments
+venv/
+ENV/
+
+# Local credentials
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Expo local configuration
+.expo-shared/
+
+# Local editor settings
+.vscode/.ropeproject

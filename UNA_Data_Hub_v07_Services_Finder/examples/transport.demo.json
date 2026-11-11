@@ -1,0 +1,14 @@
+{
+  "provider": "demo",
+  "tenant": "una",
+  "positions": [
+    {
+      "vehicle_id": "demo-001",
+      "lat": -15.827,
+      "lon": -70.017,
+      "speed_kph": 24.0,
+      "heading": 60,
+      "observed_at": "REPLACE_WITH_UTC_TIMESTAMP"
+    }
+  ]
+}

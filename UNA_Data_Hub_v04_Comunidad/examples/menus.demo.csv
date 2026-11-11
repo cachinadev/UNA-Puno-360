@@ -1,0 +1,2 @@
+location_code,service_date,meal_type,description,allergens,source_url,verified
+COM-DEMO,2026-11-10,lunch,Menú ficticio solo para demostración (NO OFICIAL),,https://comedor.unap.edu.pe/,false

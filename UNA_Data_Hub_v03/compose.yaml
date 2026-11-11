@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgis/postgis:17-3.7
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-una_hub}
+      POSTGRES_USER: ${POSTGRES_USER:-una_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./sql/002_services.sql:/docker-entrypoint-initdb.d/002_services.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build: .
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+      OVERPASS_URL: ${OVERPASS_URL:-https://overpass-api.de/api/interpreter}
+      OVERPASS_USER_AGENT: ${OVERPASS_USER_AGENT:-UNADataHubResearch/0.2 (contact: configured-by-admin)}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  pgdata:

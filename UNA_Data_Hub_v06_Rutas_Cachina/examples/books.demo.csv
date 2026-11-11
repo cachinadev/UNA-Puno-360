@@ -1,0 +1,2 @@
+external_id,title,authors,publication_year,isbn,subject,branch_code,catalog_url,availability,verified
+BOOK-DEMO-1,Libro de ejemplo (DEMO),Autor ficticio,2020,,Investigación,BIB-DEMO,https://biblioteca.unap.edu.pe/opac_css/,not_verified,false
